@@ -1,26 +1,18 @@
 package software.kasunkavinda.sentura_test.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import software.kasunkavinda.sentura_test.model.User;
-import software.kasunkavinda.sentura_test.service.Impl.UserServiceImpl;
 import software.kasunkavinda.sentura_test.service.UserService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-
+@RequiredArgsConstructor
 public class UserController {
 
 
     private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
 
     @PostMapping("/save")
@@ -54,9 +46,10 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @PostMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         try {
+            System.out.println("Deleting user");
             boolean isDeleted = userService.deleteUser(id);
             return isDeleted ? ResponseEntity.ok().build() : ResponseEntity.status(500).build();
         } catch (Exception e) {
@@ -64,10 +57,10 @@ public class UserController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<User>> listUsers() {
+    @GetMapping("/list")
+    public ResponseEntity<String> listUsers() {
         try {
-            List<User> users = userService.getAllUsers();
+            String users = userService.getAllUsers();
             return ResponseEntity.ok(users);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(null);

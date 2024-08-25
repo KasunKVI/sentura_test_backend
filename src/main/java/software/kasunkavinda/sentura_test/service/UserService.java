@@ -10,5 +10,5 @@ public interface UserService {
     User getUser(String id) throws Exception;
     User updateUser( User user) throws Exception;
     boolean deleteUser(String id) throws Exception;
-    List<User> getAllUsers() throws Exception;
+    String getAllUsers() throws Exception;
 }

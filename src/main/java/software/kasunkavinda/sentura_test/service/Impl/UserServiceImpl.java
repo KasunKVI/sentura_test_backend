@@ -1,11 +1,10 @@
 package software.kasunkavinda.sentura_test.service.Impl;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.kasunkavinda.sentura_test.model.User;
-import software.kasunkavinda.sentura_test.repo.WeavyRepo;
+import software.kasunkavinda.sentura_test.repo.WeavyClient;
 import software.kasunkavinda.sentura_test.service.UserService;
 
 import java.util.Arrays;
@@ -14,17 +13,17 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final WeavyRepo waevyRepo;
+    private final WeavyClient waevyRepo;
 
     @Autowired
     public UserServiceImpl(@Value("${weavy.api.key}")String apiKey) {
-        this.waevyRepo = new WeavyRepo(apiKey);
+        this.waevyRepo = new WeavyClient(apiKey);
 
     }
 
     @Override
     public User saveUser(User user) throws Exception {
-        return waevyRepo.createUser(user.getName(),user.getEmail());
+        return waevyRepo.createUser(user);
     }
 
     @Override
@@ -43,7 +42,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() throws Exception {
-        return Arrays.asList(waevyRepo.listUsers());
+    public String getAllUsers() throws Exception {
+        return waevyRepo.listUsers();
     }
 }

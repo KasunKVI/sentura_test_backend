@@ -4,27 +4,26 @@ import com.google.gson.Gson;
 import com.squareup.okhttp.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import software.kasunkavinda.sentura_test.model.User;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 
-@Configuration
+@Service
 @RequiredArgsConstructor
-public class WeavyRepo {
+public class WeavyClient {
 
-    private static final String URL = "https://6788c37313c5499fa4ab110b59b4cb85.weavy.io/";
+    private static final String URL = "https://6788c37313c5499fa4ab110b59b4cb85.weavy.io/api/";
     private final OkHttpClient client;
     private final String apiKey;
     private final Gson gson;
 
 
     @Autowired
-    public WeavyRepo(@Value("${weavy.api.key}") String apiKey) {
+    public WeavyClient(@Value("${weavy.api.key}") String apiKey) {
         this.client = new OkHttpClient();
         this.apiKey = apiKey;
         this.gson = new Gson();
@@ -32,19 +31,20 @@ public class WeavyRepo {
     private Request.Builder buildRequest(String endpoint) {
         return new Request.Builder()
                 .url(URL + endpoint)
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .addHeader("Content-Type", "application/json");
+                .addHeader("Authorization", "Bearer " + apiKey);
     }
 
-    public User createUser(String name, String email) throws Exception {
-        String jsonBody = gson.toJson( new User(name, email));
+    public User createUser(User user) throws Exception {
+
+        String jsonBody = gson.toJson(user);
         Request request = buildRequest("users/")
                 .post(RequestBody.create(MediaType.parse("application/json"), jsonBody))
                 .build();
 
         Response response = null;
         try {
-            response = client.newCall(request).execute();
+
+          response = client.newCall(request).execute();
             if (!response.isSuccessful()) {
                 throw new Exception("Failed to create user");
             }
@@ -80,7 +80,7 @@ public class WeavyRepo {
 
     public User updateUser(User user) throws Exception {
         String jsonBody = gson.toJson(user);
-        Request request = buildRequest("users/" + user.getId())
+        Request request = buildRequest("users/" + user.getUid())
                 .patch(RequestBody.create(MediaType.parse("application/json"), jsonBody))
                 .build();
 
@@ -103,11 +103,16 @@ public class WeavyRepo {
     }
 
     public boolean deleteUser(String userId) throws Exception {
-        Request request = buildRequest("users/" + userId).delete().build();
+        Request request = buildRequest("users/" + userId +"/trash")
+                .post(RequestBody.create(MediaType.parse("application/json"), ""))
+                        .build();
+
+        System.out.println(request);
 
         Response response = null;
         try {
             response = client.newCall(request).execute();
+            System.out.println(response);
             return response.isSuccessful();
         } catch (IOException e) {
             throw new Exception("Network error occurred while deleting user", e);
@@ -119,7 +124,7 @@ public class WeavyRepo {
 
     }
 
-    public User[] listUsers() throws Exception {
+    public String listUsers() throws Exception {
         Request request = buildRequest("users").get().build();
 
         Response response = null;
@@ -128,7 +133,7 @@ public class WeavyRepo {
             if (!response.isSuccessful()) {
                 throw new Exception("Failed to list users");
             }
-            return gson.fromJson(response.body().string(), User[].class);
+            return response.body().string();
         } catch (IOException e) {
             throw new Exception("Network error occurred while get users", e);
         } finally {
